@@ -119,26 +119,37 @@ void main() {
 		scanf("%u", &selection);
 
 		if (selection == 1) {
+			while(getchar() != '\n');
 			ask_contact_info(&db);
 		}
 
 		if (selection == 2) {
+			while(getchar() != '\n');
+
 			display_db(&db);
 		}
 
 		if (selection == 3) {
+			while(getchar() != '\n');
+
 			name_search(&db);
 		}
 
 		if (selection == 4) {
+			while(getchar() != '\n');
+
 			phone_search(&db);
 		}
 
 		if (selection == 5) {
+			while(getchar() != '\n');
+
 			removal_of_contact(&db);
 		}
 
 		if (selection == 6) {
+			while(getchar() != '\n');
+
 			exit_display(&db);
 		}
 
@@ -372,7 +383,7 @@ void display_db(database* x) {
 
 void display_contact(contact* c) {
 	if(c == NULL) {
-		printf("<<<<<<<<<<<<<<<<<              Does not exist.              >>>>>>>>>>>>>>>>>");
+		printf("\n<<<<<<<<<<<<<<<<<              Does not exist.              >>>>>>>>>>>>>>>>>\n");
 		return;
 	}
 	
@@ -451,6 +462,8 @@ string string_input() {
 	}
 
 	string name = new_string(n);
+
+	while(getchar() != '\n');
 	
 	return name;
 }
