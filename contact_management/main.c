@@ -10,7 +10,7 @@
 //Sorting Functions	-	{merge, sort_merge, sort_db}
 //Searching Functions	-	{search_by_name, search_by_phone}
 //Display Functions	-	{display, display_contact, display_menu, exit_display}
-//User Input Fuctions	-	{string_input, u32_input phone_input, contact_input}
+//User Input Fuctions	-	{string_input, u32_input, phone_input, contact_input}
 //Safety Functions	-	{free_database}
 //Load Off Functions	-	{boiler_work, contact_insertion_work, ask_contact_info, removal_of_contact, phone_search, name_search}
 
@@ -71,8 +71,6 @@ database db = { .arr = NULL, .top = 0, .capacity = 0 };
 // String & Memory Utilities
 int string_compare(string a, string b);
 void free_database(database* db);
-
-// u32 and String input handling
 
 // Database Core Operations
 contact* create_contact(string name, u64 ph);
@@ -149,10 +147,6 @@ void main() {
 
 //----------------------------------------------------------
 //DATABASE HANDLING FUNCTIONS
-
-string new_string(char* data) { 
-	return (string) { .data = data, .length = strlen(data) }; 
-}
 
 int string_compare(string a, string b) {
 	u32 i = 0;
