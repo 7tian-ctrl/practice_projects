@@ -33,7 +33,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include <inttypes.h>		
+#include <inttypes.h>
+
+#ifdef _WIN32
+	#include <windows.h>
+#else
+	#include <unistd.h>
+#endif		
 
 //------------------------------------
 //defined types and structures
@@ -53,9 +59,9 @@ typedef struct {
 } contact;
 
 typedef struct {
-        contact** arr;
+	contact** arr;
 	u32 capacity;
-        u32 top;
+	u32 top;
 } database;
 
 //GLOBAL VARIABLE
@@ -63,7 +69,11 @@ typedef struct {
 database db = { .arr = NULL, .top = 0, .capacity = 0 };
 
 //----------------------------------------------------------
-
+// Database file path
+//----------------------------------------------------------
+#define MAX_PATH_LEN 512
+static char CONTACTS_FILE[MAX_PATH_LEN];
+void init_contacts_path();
 
 //----------------------------------------------------------
 // FUNCTION PROTOTYPES
@@ -107,12 +117,19 @@ void removal_of_contact(database* x);
 void name_search(database* x);
 void phone_search(database* x);
 
+// Save/Load
+void db_load(database* x);
+void db_save(database* x);
+
 //----------------------------------------------------------
 
 // MAIN FUNCTION
 
 void main() {	
-
+	
+	init_contacts_path();
+	db_load(&db);
+	
 	u32 selection = 0;
 
 	while(1) {
@@ -397,6 +414,8 @@ void exit_display(database* db) {
 
 	printf("\n\033[1;33m[!] Shutting down Contact Management System...\033[0m\n");
     
+	printf("\033[0;90m  > Saving database... \033[0m\n");
+	db_save(db);
 
 	printf("\033[0;90m  > Freeing database memory...\033[0m\n");
 	free_database(db);
@@ -614,12 +633,12 @@ void contact_insertion_work(database* db, contact* c) {
 void ask_contact_info(database* db) {
 	contact* c = contact_input(db);
 	if (c == NULL) return;
-
+	
 	contact_insertion_work(db, c);
-
+	
 	sort_db(db);
 	display_db(db);
-
+	
 	return;
 }
 
@@ -648,5 +667,131 @@ void phone_search(database* x) {
 	display_contact(c);
 }
 
-//----------------------------------------------------
+//------------------------------------------------------
+//SAVE/LOAD
 
+void init_contacts_path() {
+    char exe_path[MAX_PATH_LEN];
+
+#ifdef _WIN32
+    DWORD len = GetModuleFileNameA(NULL, exe_path, MAX_PATH_LEN);
+    if (len == 0 || len == MAX_PATH_LEN) return;
+#else
+    ssize_t len = readlink("/proc/self/exe", exe_path, MAX_PATH_LEN - 1);
+    if (len == -1) return;
+    exe_path[len] = '\0';
+#endif
+
+    char *last_sep =
+#ifdef _WIN32
+        strrchr(exe_path, '\\');
+#else
+        strrchr(exe_path, '/');
+#endif
+
+    if (last_sep) {
+        *(last_sep + 1) = '\0';
+    }
+
+    // final path
+    snprintf(CONTACTS_FILE, MAX_PATH_LEN, "%scontacts.bin", exe_path);
+}
+
+void db_load(database* x) {
+	
+    FILE *f = fopen(CONTACTS_FILE, "rb");
+    if (!f) return;
+
+    database temp = {0};  // temporary db
+
+    u32 top, capacity;
+
+    if (fread(&top, sizeof(u32), 1, f) != 1) goto fail;
+    if (fread(&capacity, sizeof(u32), 1, f) != 1) goto fail;
+    if (capacity < top) goto fail;
+
+    temp.arr = malloc(sizeof(contact*) * capacity);
+    if (!temp.arr) goto fail;
+
+    temp.capacity = capacity;
+    temp.top = 0;
+
+    for (u32 i = 0; i < top; i++) {
+        contact *c = malloc(sizeof(contact));
+        if (!c) goto fail;
+
+        if (fread(&c->name.length, sizeof(u32), 1, f) != 1) {
+            free(c);
+            goto fail;
+        }
+
+        c->name.data = malloc(c->name.length + 1);
+        if (!c->name.data) {
+            free(c);
+            goto fail;
+        }
+
+        if (fread(c->name.data, 1, c->name.length, f) != c->name.length) {
+            free(c->name.data);
+            free(c);
+            goto fail;
+        }
+
+        c->name.data[c->name.length] = '\0';
+
+        if (fread(&c->phone, sizeof(u64), 1, f) != 1) {
+            free(c->name.data);
+            free(c);
+            goto fail;
+        }
+
+        temp.arr[temp.top++] = c;
+    }
+
+    fclose(f);
+
+    free_database(x);
+    *x = temp;
+
+    return;
+
+fail:
+    fclose(f);
+    free_database(&temp);
+}
+
+void db_save(database* x) {
+	FILE *f = fopen("contacts.tmp", "wb");
+    if (!f) return;
+
+	// write metadta
+	if (fwrite(&x->top, sizeof(u32), 1, f) != 1) goto fail;
+    if (fwrite(&x->capacity, sizeof(u32), 1, f) != 1) goto fail;
+
+	// write contacts
+	for (u32 i = 0; i < x->top; i++) {
+        contact *c = x->arr[i];
+
+        // write name length
+        if (fwrite(&c->name.length, sizeof(u32), 1, f) != 1) goto fail;
+
+        // write name 
+        if (fwrite(c->name.data, sizeof(char), c->name.length, f) != c->name.length) goto fail;
+
+        // write phone
+        if (fwrite(&c->phone, sizeof(u64), 1, f) != 1) goto fail;
+    }
+
+    fclose(f);
+	remove(CONTACTS_FILE);
+    rename("contacts.tmp", CONTACTS_FILE);
+
+    return;
+
+fail:
+	printf("\033[0;90m  > Error saving database... \033[0m\n");
+	fclose(f);
+	remove("contacts.tmp");
+	return;
+}
+//----------------------------------------------------
