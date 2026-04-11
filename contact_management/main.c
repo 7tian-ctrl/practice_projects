@@ -1,6 +1,6 @@
 //SEQUENCE OF PROGRAM
 //
-//Libraries used	-	{stdio, stdlib, string, ctype, inttypes}
+//Libraries used	-	{stdio, stdlib, errno, string, ctype, inttypes}
 //Defined types and structures		-	{unsigned 64bit int, unsigned 32bit int, string, contact, database}
 //
 //FUNCTION PROTOTYPES
@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>		
@@ -519,12 +520,12 @@ u64 phone_input() {
 
         char *ptr = s.data;
 		while (isspace((unsigned char)*ptr))
-            ptr++;
+		   	ptr++;
 
-		if (*ptr == '\0') {
-            free(s.data);
-            continue;
-        }
+			if (*ptr == '\0') {
+		   		free(s.data);
+            			continue;
+        		}
 
 		char *p = ptr;
         int digits = 0;
