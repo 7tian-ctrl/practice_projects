@@ -675,10 +675,14 @@ void init_contacts_path() {
 
 #ifdef _WIN32
     DWORD len = GetModuleFileNameA(NULL, exe_path, MAX_PATH_LEN);
-    if (len == 0 || len == MAX_PATH_LEN) return;
+    if (len == 0 || len >= MAX_PATH_LEN) {
+		goto fallback;
+	}
+	exe_path[len] = '\0';
+
 #else
     ssize_t len = readlink("/proc/self/exe", exe_path, MAX_PATH_LEN - 1);
-    if (len == -1) return;
+    if (len == -1) goto fallback;
     exe_path[len] = '\0';
 #endif
 
@@ -695,6 +699,10 @@ void init_contacts_path() {
 
     // final path
     snprintf(CONTACTS_FILE, MAX_PATH_LEN, "%scontacts.bin", exe_path);
+	return;
+
+fallback:
+	strcpy(CONTACTS_FILE, "contacts.bin");
 }
 
 void db_load(database* x) {
