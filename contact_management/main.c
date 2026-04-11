@@ -10,7 +10,7 @@
 //Sorting Functions	-	{merge, sort_merge, sort_db}
 //Searching Functions	-	{search_by_name, search_by_phone}
 //Display Functions	-	{display, display_contact, display_menu, exit_display}
-//User Input Fuctions	-	{string_input, u32_input phone_input, contact_input}
+//User Input Fuctions	-	{string_input, u32_input, phone_input, contact_input}
 //Safety Functions	-	{free_database}
 //Load Off Functions	-	{boiler_work, contact_insertion_work, ask_contact_info, removal_of_contact, phone_search, name_search}
 
@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include <inttypes.h>		
 
 //------------------------------------
@@ -71,8 +72,6 @@ database db = { .arr = NULL, .top = 0, .capacity = 0 };
 // String & Memory Utilities
 int string_compare(string a, string b);
 void free_database(database* db);
-
-// u32 and String input handling
 
 // Database Core Operations
 contact* create_contact(string name, u64 ph);
@@ -149,10 +148,6 @@ void main() {
 
 //----------------------------------------------------------
 //DATABASE HANDLING FUNCTIONS
-
-string new_string(char* data) { 
-	return (string) { .data = data, .length = strlen(data) }; 
-}
 
 int string_compare(string a, string b) {
 	u32 i = 0;
@@ -496,7 +491,7 @@ u32 u32_input(const char *prompt)
         char *end;
         errno = 0;
 
-        u32 val = strtoul(ptr, &end, 10);
+        unsigned long val = strtoul(ptr, &end, 10);
 
         if (ptr != end && errno == 0) {
             while (isspace((unsigned char)*end))
@@ -532,23 +527,29 @@ u64 phone_input() {
             continue;
         }
 
-		char *end;
-        errno = 0;
+		char *p = ptr;
+        int digits = 0;
+        while (isdigit((unsigned char)*p)) {
+            digits++;
+            p++;
+        }
 
-		u64 val = strtoull(ptr, &end, 10);
+		char *end = p;
+        while (isspace((unsigned char)*end))
+            end++;
 
-        if (ptr != end && errno == 0) {
-            while (isspace((unsigned char)*end))
-                end++;
+		if (digits == 10 && *end == '\0') {
+            errno = 0;
+            unsigned long long val = strtoull(ptr, NULL, 10);
 
-            if (*end == '\0') {
+            if (errno == 0) {
                 free(s.data);
                 return (u64)val;
             }
         }
 
         free(s.data);
-        printf("\033[1;31mInvalid input! Please enter digits only.\033[0m\n");
+        printf("\033[1;31mInvalid input! Please enter a valid phone number.\033[0m\n");
     }
 }
 
