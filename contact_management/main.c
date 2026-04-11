@@ -757,7 +757,7 @@ void db_load(database* x) {
 	
 	fail:
     fclose(f);
-	printf("\033[0;90m  > Error loading database... \033[0m\n");
+	printf("\033[31m > Error loading database... \033[0m\n");
     free_database(&temp);
 }
 
@@ -791,7 +791,7 @@ void db_save(database* x) {
 
 fail:
 	fclose(f);
-	printf("\033[0;90m  > Error saving database... \033[0m\n");
+	printf("\033[31m  > Error saving database... \033[0m\n");
 	remove("contacts.tmp");
 	return;
 }
