@@ -6,11 +6,11 @@
 //FUNCTION PROTOTYPES
 //
 //Global Variable 	-	{database db}
-//Database Handling Functions	-	 {new_string, string_compare, create_contact, insert_contact, remove_contact}
+//Database Handling Functions	-	 {string_compare, create_contact, insert_contact, remove_contact}
 //Sorting Functions	-	{merge, sort_merge, sort_db}
 //Searching Functions	-	{search_by_name, search_by_phone}
 //Display Functions	-	{display, display_contact, display_menu, exit_display}
-//User Input Fuctions	-	{phone_input, string_input, contact_input}
+//User Input Fuctions	-	{string_input, u32_input phone_input, contact_input}
 //Safety Functions	-	{free_database}
 //Load Off Functions	-	{boiler_work, contact_insertion_work, ask_contact_info, removal_of_contact, phone_search, name_search}
 
@@ -39,6 +39,7 @@
 
 typedef uint64_t u64;
 typedef uint32_t u32;
+typedef int32_t i32;
 
 typedef struct {
         char* data;
@@ -68,9 +69,10 @@ database db = { .arr = NULL, .top = 0, .capacity = 0 };
 //----------------------------------------------------------
 
 // String & Memory Utilities
-string new_string(char* data);
 int string_compare(string a, string b);
 void free_database(database* db);
+
+// u32 and String input handling
 
 // Database Core Operations
 contact* create_contact(string name, u64 ph);
@@ -93,8 +95,9 @@ void display_menu();
 void exit_display(database* db);
 
 // User Input Wrappers
+string string_input(const char* prompt);
+u32 u32_input(const char* prompt);
 u64 phone_input();
-string string_input();
 contact* contact_input(database* db);
 
 // High-Level Logic (Load Off)
@@ -113,50 +116,36 @@ void main() {
 
 	u32 selection = 0;
 
-	while(selection != 6) {
+	while(1) {
 		display_menu();
 
-		scanf("%u", &selection);
+		selection = u32_input("Selection > ");
 
-		if (selection == 1) {
-			while(getchar() != '\n');
-			ask_contact_info(&db);
+		switch(selection) {
+			case 1:
+				ask_contact_info(&db);
+				break;
+			case 2:
+				display_db(&db);
+				break;
+			case 3:
+				name_search(&db);
+				break;
+			case 4:
+				phone_search(&db);
+				break;
+			case 5:
+				removal_of_contact(&db);
+				break;
+			case 6:
+				exit_display(&db);
+				break;
+			default:
+				printf("Invalid choice. Try again.\n");
+				break;
 		}
-
-		if (selection == 2) {
-			while(getchar() != '\n');
-
-			display_db(&db);
-		}
-
-		if (selection == 3) {
-			while(getchar() != '\n');
-
-			name_search(&db);
-		}
-
-		if (selection == 4) {
-			while(getchar() != '\n');
-
-			phone_search(&db);
-		}
-
-		if (selection == 5) {
-			while(getchar() != '\n');
-
-			removal_of_contact(&db);
-		}
-
-		if (selection == 6) {
-			while(getchar() != '\n');
-
-			exit_display(&db);
-		}
-
-		while (getchar() != '\n');
 	}
 }
-
 
 //----------------------------------------------------------
 //DATABASE HANDLING FUNCTIONS
@@ -184,18 +173,18 @@ int string_compare(string a, string b) {
 }
 
 contact* create_contact(string name, u64 ph) {
-        contact* new = (contact*)malloc(sizeof(contact));
+	contact* new = (contact*)malloc(sizeof(contact));
 
-        if(new == NULL) return NULL;
+	if(new == NULL) return NULL;
 
 	if (name.data != NULL && name.length > 0) {
 		name.data[0] = (char)toupper((unsigned char)name.data[0]);
 	}
 
-        new->name = name;
-        new->phone = ph;
+	new->name = name;
+	new->phone = ph;
 
-        return new;
+	return new;
 }
 
 u32 insert_contact(database* x, contact* n) {
@@ -405,7 +394,6 @@ void display_menu() {
 	printf("  [5] \033[31mDelete Contact\033[0m\n");
 	printf("  [6] \033[33mExit Program\033[0m\n");
 	printf("\033[1;36m------------------------------------------\033[0m\n");
-	printf("Selection > ");
 }
 
 
@@ -432,74 +420,157 @@ void exit_display(database* db) {
 //--------------------------------------------------------------------
 //USER INPUT FUNCTIONS
 
-u64 phone_input() {
-	u64 phone;
-	printf("\033[1;32mEnter Phone Number:\033[0m "); 
+string string_input(const char *prompt) {
+    string result = {NULL, 0};
 
-	if (scanf("%" SCNu64, &phone) != 1) {
-		printf("\033[1;31mInvalid input! Please enter digits only.\033[0m\n");
-		while(getchar() != '\n'); 
-	}
+	if (prompt)
+    	printf("%s", prompt);
 
-	return phone;
+    char *buffer = NULL;
+    size_t size = 0;
+    size_t capacity = 0;
+
+    int c;
+
+    while ((c = fgetc(stdin)) != '\n' && c != EOF) {
+        if (size + 1 > capacity) {
+            size_t newcap = (capacity == 0) ? 16 : capacity * 2;
+
+            char *temp = realloc(buffer, newcap);
+            if (!temp) {
+                free(buffer);
+                return result;
+            }
+
+            buffer = temp;
+            capacity = newcap;
+        }
+
+        buffer[size++] = (char)c;
+    }
+
+    if (size == 0 && c == EOF) {
+        free(buffer);
+        return result;
+    }
+
+    if (size + 1 > capacity) {
+        char *temp = realloc(buffer, size + 1);
+        if (!temp) {
+            free(buffer);
+            return result;
+        }
+        buffer = temp;
+    }
+
+    buffer[size] = '\0';
+
+    result.data = buffer;
+    result.length = (u32)size;
+
+    return result;
 }
 
-string string_input() {
-	u32 cap = 31;
-	char* n = (char*)malloc(sizeof(char) * cap);
+u32 u32_input(const char *prompt)
+{
+    while (1) {
+        if (prompt)
+        	printf("%s", prompt);
 
-	string empty_string = { .data = NULL, .length = 0 };
+        string s = string_input(NULL);
 
-	if (n == NULL) return empty_string;
+        if (s.data == NULL) {
+            return 0; 
+        }
 
-	printf("Please enter the name: ");
-	if(scanf(" %30[^\n]s", n) != 1) {
-		return empty_string;
-	}
+        char *ptr = s.data;
 
-	if (n != NULL && strlen(n) > 0) {
-		n[0] = (char)toupper((unsigned char)n[0]);
-	}
+        while (isspace((unsigned char)*ptr))
+            ptr++;
 
-	string name = new_string(n);
+        if (*ptr == '\0') {
+            free(s.data);
+            continue;
+        }
 
-	while(getchar() != '\n');
-	
-	return name;
+        char *end;
+        errno = 0;
+
+        u32 val = strtoul(ptr, &end, 10);
+
+        if (ptr != end && errno == 0) {
+            while (isspace((unsigned char)*end))
+                end++;
+
+            if (*end == '\0' && val <= UINT32_MAX) {
+                free(s.data);
+                return (u32)val;
+            }
+        }
+
+        free(s.data);
+        printf("Invalid input. Try again.\n");
+    }
+}
+
+u64 phone_input() {
+    u64 phone;
+
+    while (1) {
+        string s = string_input("\033[1;32mEnter Phone Number:\033[0m ");
+
+		if (s.data == NULL) {
+            return 0; 
+        }
+
+        char *ptr = s.data;
+		while (isspace((unsigned char)*ptr))
+            ptr++;
+
+		if (*ptr == '\0') {
+            free(s.data);
+            continue;
+        }
+
+		char *end;
+        errno = 0;
+
+		u64 val = strtoull(ptr, &end, 10);
+
+        if (ptr != end && errno == 0) {
+            while (isspace((unsigned char)*end))
+                end++;
+
+            if (*end == '\0') {
+                free(s.data);
+                return (u64)val;
+            }
+        }
+
+        free(s.data);
+        printf("\033[1;31mInvalid input! Please enter digits only.\033[0m\n");
+    }
 }
 
 contact* contact_input(database* db) {
-	u64 ph;
-	u32 cap = 31;
-	char* n = (char*)malloc(sizeof(char) * cap);
+    string name = string_input("Please enter the name: ");
 
-	if (n == NULL) return NULL;
+    if (name.data == NULL || name.length == 0) {
+        free(name.data);
+        return NULL;
+    }
 
-	printf("Please enter the name: ");
-		if(scanf(" %30[^\n]s", n) != 1) {
-		free(n);
-		return NULL;
-	}
+    name.data[0] = (char)toupper((unsigned char)name.data[0]);
 
-	printf("Please enter the phone number: ");
-		if(scanf("%" SCNu64, &ph) != 1) {
-			free(n);
-			return NULL;
-	}
+    if (search_by_name(db, name) != NULL) {
+        printf("\n\t\tName already exists!\t\tTry again.\n");
+        free(name.data);
+        return NULL;
+    }
 
-	if (n != NULL && strlen(n) > 0) {
-		n[0] = (char)toupper((unsigned char)n[0]);
-	}
+    u64 ph = phone_input();
 
-	string name = new_string(n);
-
-	if (search_by_name(db, name) != NULL) {
-		printf("\n\t\tName already exists!\t\tTry again.\n");
-		free(n);
-		return NULL;
-	}
-
-	return create_contact(name, ph); 
+    return create_contact(name, ph);
 }
 
 //-------------------------------------------------------------------
@@ -552,14 +623,20 @@ void ask_contact_info(database* db) {
 }
 
 void removal_of_contact(database* x) {
-	string s = string_input();
-	contact_removal(x, s);
+	string name = string_input("Please enter the name: ");
+	if (name.data != NULL && name.length > 0) {
+		name.data[0] = (char)toupper((unsigned char)name.data[0]);
+	}
+	contact_removal(x, name);
 	display_db(x);
 }
 
 void name_search(database* x) {
-	string s = string_input();
-	contact* c = search_by_name(x, s);
+	string name = string_input("Please enter the name: ");
+	if (name.data != NULL && name.length > 0) {
+		name.data[0] = (char)toupper((unsigned char)name.data[0]);
+	}
+	contact* c = search_by_name(x, name);
 
 	display_contact(c);
 }
