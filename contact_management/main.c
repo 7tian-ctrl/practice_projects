@@ -490,7 +490,7 @@ u32 u32_input(const char *prompt)
         char *end;
         errno = 0;
 
-        u32 val = strtoul(ptr, &end, 10);
+        unsigned long val = strtoul(ptr, &end, 10);
 
         if (ptr != end && errno == 0) {
             while (isspace((unsigned char)*end))
@@ -526,23 +526,29 @@ u64 phone_input() {
             continue;
         }
 
-		char *end;
-        errno = 0;
+		char *p = ptr;
+        int digits = 0;
+        while (isdigit((unsigned char)*p)) {
+            digits++;
+            p++;
+        }
 
-		u64 val = strtoull(ptr, &end, 10);
+		char *end = p;
+        while (isspace((unsigned char)*end))
+            end++;
 
-        if (ptr != end && errno == 0) {
-            while (isspace((unsigned char)*end))
-                end++;
+		if (digits == 10 && *end == '\0') {
+            errno = 0;
+            unsigned long long val = strtoull(ptr, NULL, 10);
 
-            if (*end == '\0') {
+            if (errno == 0) {
                 free(s.data);
                 return (u64)val;
             }
         }
 
         free(s.data);
-        printf("\033[1;31mInvalid input! Please enter digits only.\033[0m\n");
+        printf("\033[1;31mInvalid input! Please enter a valid phone number.\033[0m\n");
     }
 }
 
