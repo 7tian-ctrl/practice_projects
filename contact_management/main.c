@@ -468,6 +468,15 @@ string string_input(const char *prompt) {
         return result;
     }
 
+	while (size > 0 && buffer[size - 1] == ' ')
+        size--;
+
+    size_t start = 0;
+    while (start < size && buffer[start] == ' ')
+        start++;
+
+    size -= start;
+
     if (size + 1 > capacity) {
         char *temp = realloc(buffer, size + 1);
         if (!temp) {
@@ -475,8 +484,12 @@ string string_input(const char *prompt) {
             return result;
         }
         buffer = temp;
+		capacity = size + 1;
     }
-
+	
+	if (start > 0)
+        memmove(buffer, buffer + start, size);
+		
     buffer[size] = '\0';
 
     result.data = buffer;
