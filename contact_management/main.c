@@ -13,6 +13,7 @@
 //User Input Fuctions	-	{string_input, u32_input, phone_input, contact_input}
 //Safety Functions	-	{free_database}
 //Load Off Functions	-	{boiler_work, contact_insertion_work, ask_contact_info, removal_of_contact, phone_search, name_search}
+//Save and Load functions	-	{initial_contacts_path, db_load, db_save}
 
 //MAIN Function		-	{main}
 
