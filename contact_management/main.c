@@ -1,4 +1,4 @@
-/* * Original Authors & Contribution Breakdown:
+/* * Original Authors & Contribution:
  * ----------------------------------------------------------------
  * AUTHOR: 7tian-ctrl
  * Role: Core logic, database functions, user inputs, display, 
