@@ -1,9 +1,14 @@
-// Original authors:
-// Built by 7tian-ctrl in collaboration with faze-x on github.
-// 
-// CREDITS
-// 7tian-ctrl		-	managed core logic, database functions, user inputs, display, safety function, sorting and searching
-// faze-x		-	managed file functions, fixed a few undefined behaviors in the code
+/* * Original Authors & Contribution Breakdown:
+ * ----------------------------------------------------------------
+ * AUTHOR: 7tian-ctrl
+ * Role: Core logic, database functions, user inputs, display, 
+ * safety functions, sorting, and searching algorithms.
+ *
+ * COLLABORATOR: faze-x 
+ * Role: File I/O functions and stability fixes (undefined behaviors).
+ * ----------------------------------------------------------------
+ * This software is licensed under the GNU GPLv3.
+ */
 
 //SEQUENCE OF PROGRAM
 //
