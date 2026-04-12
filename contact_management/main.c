@@ -1,3 +1,6 @@
+// Original authors:
+// Built by 7tian-ctrl in collaboration with faze-x on github.
+
 //SEQUENCE OF PROGRAM
 //
 //Libraries used	-	{stdio, stdlib, string, ctype, inttypes}
