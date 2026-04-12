@@ -1,5 +1,9 @@
 // Original authors:
 // Built by 7tian-ctrl in collaboration with faze-x on github.
+// 
+// CREDITS
+// 7tian-ctrl		-	managed core logic, database functions, user inputs, display, safety function, sorting and searching
+// faze-x		-	managed file functions, fixed a few undefined behaviors in the code
 
 //SEQUENCE OF PROGRAM
 //
