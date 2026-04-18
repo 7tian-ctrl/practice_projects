@@ -31,12 +31,6 @@
 
 //TO DO LIST
 //
-//search_by_phone	-	completed
-//contact_input		-	completed	--update to check for existing names	completed
-//contact_removal	-	completed
-//menu			-	completed
-//read from file	-			--different file support
-//write to file
 //multi user files
 //authentication
 //fix string_input
